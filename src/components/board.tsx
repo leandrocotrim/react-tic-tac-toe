@@ -1,17 +1,17 @@
 import React, { FC, useState } from 'react'
 
-import Position from './position'
-import { defaultBoard, getWinner } from '../helpers/board.helper'
+import House from './house'
+import { getDefaultBoard, getWinner } from '../helpers/board.helper'
 import { Player, Message } from '../helpers/types.helper'
 
 interface IBoardSetting { }
 
 const Board: FC<IBoardSetting> = () => {
-  const [board, setBoard] = useState(defaultBoard)
+  const [board, setBoard] = useState(getDefaultBoard())
 
   const getNextPlayer = () => board.player === Player.x ? Player.o : Player.x
 
-  const clear = () => setBoard(defaultBoard)
+  const clear = () => setBoard(getDefaultBoard())
 
   const back = () => {
     if (board.history.length === 0) return
@@ -30,17 +30,17 @@ const Board: FC<IBoardSetting> = () => {
 
   const changeBoard = (column: number) => {
     if (board.winner) return
+    
+    const newHistory = [...board.history, board.positions.slice()]
+    const newPositions = [...board.positions]
+    newPositions[column].value = board.player
 
-    const history = [...board.history, board.positions]
-    const positions = board.positions.slice()
-    positions[column] = board.player
-
-    const winner = getWinner(positions)
+    const winner = getWinner(newPositions)
 
     setBoard({
       ...board,
-      history: history,
-      positions: positions,
+      history: newHistory,
+      positions: newPositions,
       winner: winner,
       player: winner ? board.player : getNextPlayer(),
       message: winner ? Message.win : undefined
@@ -59,13 +59,13 @@ const Board: FC<IBoardSetting> = () => {
       rows.map((row, indexRow) =>
         (
           <div className="row" key={indexRow}>
-            {              
+            {
               row.map((column, indexColumn) => (
-                <Position
+                <House
                   key={indexColumn}
-                  event={(valid: boolean) => click(valid, column)}
-                  rail={(board.winner !== undefined && board.winner.model.includes(0))}
-                  value={column} />
+                  event={(valid: boolean) => click(valid, column.index)}
+                  rail={(board.winner !== undefined && board.winner.model.includes(column.index))}
+                  position={column} />
               ))
             }
           </div>

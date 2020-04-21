@@ -4,7 +4,7 @@
     margin-top: -1px;
 }
 
-.position {
+.house {
     flex       : 1;
     padding    : 5px;
     border     : 1px solid black;
@@ -13,11 +13,11 @@
     cursor     : pointer;
 }
 
-.position.unavailable {
+.house.unavailable {
     cursor: no-drop;
 }
 
-.position.rail {
+.house.rail {
     font-weight: bold;
     color      : red;
 }
