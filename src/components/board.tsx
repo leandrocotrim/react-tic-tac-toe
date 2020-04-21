@@ -1,55 +1,70 @@
 import React, { FC, useState } from 'react'
 
 import Position from './position'
-import { baseBoard, getWinner } from '../helpers/board.helper'
-import { Player, ErrorBoard } from '../helpers/types.helper'
+import { defaultBoard, getWinner } from '../helpers/board.helper'
+import { Player, Message } from '../helpers/types.helper'
 
 interface IBoardSetting { }
 
 const Board: FC<IBoardSetting> = () => {
-  const [board, setBoard] = useState(baseBoard)
-  const [history, setHistory] = useState<any[]>([])
-  const [player, setPlayer] = useState(Player.x)
-  const [error, setError] = useState<ErrorBoard>()
-  // const [rails, setRails] = useState<number[][]>([])
+  const [board, setBoard] = useState(defaultBoard)
 
-  const clear = () => {
-    setBoard(baseBoard)
-    setHistory([])
-  }
+  const getNextPlayer = () => board.player === Player.x ? Player.o : Player.x
 
-  const changePlayer = () => setPlayer(player === Player.x ? Player.o : Player.x)
+  const clear = () => setBoard(defaultBoard)
 
   const back = () => {
-    if (history.length === 0) return;
+    if (board.history.length === 0) return
 
-    const newHistory = history.slice()
-    setBoard(newHistory.pop())
-    setHistory(newHistory)
-    changePlayer()
+    const history = board.history.slice()
+    const positions = history.pop()
+
+    setBoard({
+      ...board,
+      history: history,
+      positions: positions!,
+      winner: undefined,
+      message: undefined
+    })
   }
 
-  const changeBoard = (indexRow: number, indexColumn: number) => {
-    const newBoard = board.slice()
-    newBoard[indexRow][indexColumn] = player;
-    setBoard(newBoard)
-    setHistory([...history, board])
-    changePlayer()
+  const changeBoard = (column: number) => {
+    if (board.winner) return
 
-    console.log(getWinner(newBoard))
+    const history = [...board.history, board.positions]
+    const positions = board.positions.slice()
+    positions[column] = board.player
+
+    const winner = getWinner(positions)
+
+    setBoard({
+      ...board,
+      history: history,
+      positions: positions,
+      winner: winner,
+      player: winner ? board.player : getNextPlayer(),
+      message: winner ? Message.win : undefined
+    })
   }
+
+  const click = (valid: boolean, column: any) => {
+    if (board.winner !== undefined) return
+    valid ? changeBoard(column) : setBoard({ ...board, message: Message.invalidPosition })
+  }
+
+  const rows = [board.positions.slice(0, 3), board.positions.slice(3, 6), board.positions.slice(6, 9)]
 
   return <div className="board">
     {
-      board.map((row, indexRow) =>
+      rows.map((row, indexRow) =>
         (
           <div className="row" key={indexRow}>
-            {
+            {              
               row.map((column, indexColumn) => (
                 <Position
                   key={indexColumn}
-                  event={(valid: boolean) => valid ? changeBoard(indexRow, indexColumn) : setError(ErrorBoard.invalidPosition)}
-                  rail={false}
+                  event={(valid: boolean) => click(valid, column)}
+                  rail={(board.winner !== undefined && board.winner.model.includes(0))}
                   value={column} />
               ))
             }
@@ -60,8 +75,8 @@ const Board: FC<IBoardSetting> = () => {
       <button onClick={clear}>Novo</button> <button onClick={back}>Voltar</button>
     </div>
     <div className="messages">
-      <div className="player">É a vez do jogador {player}</div>
-      <div className="error">{error}</div>
+      <div className="player">É a vez do jogador {board.player}</div>
+      <div className="message">{board.message}</div>
     </div>
   </div>
 }

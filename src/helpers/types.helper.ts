@@ -1,5 +1,5 @@
 export enum Player { x = 'X', o = 'O' }
-export enum ErrorBoard { invalidPosition = 'Posição já preenchida' }
+export enum Message { invalidPosition = 'Posição já preenchida', win = 'Fim de jogo, o jogador atual venceu.' }
 
-export type PositionBoard = { row: number, column: number }
-export type Winner = { win: boolean, player: any }
+export type Winner = { win: boolean, player: any, model: number[] }
+export type BoardState = { positions: any[], history: any[][], player: Player, message?: Message, winner?: Winner }

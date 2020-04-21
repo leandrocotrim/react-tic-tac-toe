@@ -11,6 +11,8 @@ const Position: FC<IPositionSetting> = ({ value, rail, event }) => {
   const className = 'position' + (!avariable ? ' unavailable' : '') + (rail ? ' rail' : '')
   const click = () => event(avariable)
 
+  console.log([value, rail, event])
+
   return <div className={className} onClick={click}>{value}</div>
 }
 
