@@ -8,5 +8,3 @@ export const getBasePositions = (): any[] => [...Array(9)].map((_, index) => (in
 
 export const getWinner =
   (positions: any[]) => rails.find(rail => positions[rail[0]] === positions[rail[1]] && positions[rail[1]] === positions[rail[2]])
-
-
