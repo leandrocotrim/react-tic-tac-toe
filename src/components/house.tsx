@@ -1,19 +1,17 @@
 import React, { FC } from 'react'
 
-import { Position } from '../helpers/types.helper'
-
 interface IPositionSetting {
-  position: Position,
+  position: any,
   rail: boolean,
   event: Function
 }
 
 const House: FC<IPositionSetting> = ({ position, rail, event }) => {
-  const avariable = position.value === undefined
+  const avariable = typeof position === 'number'
   const className = 'house' + (!avariable ? ' unavailable' : '') + (rail ? ' rail' : '')
   const click = () => event(avariable)
 
-  return <div className={className} onClick={click}>{position.value || position.index}</div>
+  return <div className={className} onClick={click}>{position}</div>
 }
 
 export default House

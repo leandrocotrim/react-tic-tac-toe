@@ -1,82 +1,83 @@
 import React, { FC, useState } from 'react'
 
 import House from './house'
-import { getDefaultBoard, getWinner } from '../helpers/board.helper'
-import { Player, Message } from '../helpers/types.helper'
+import { Player, Message } from '../helpers/enums.helper'
+import { getBasePositions, getWinner } from '../helpers/board.helper'
 
 interface IBoardSetting { }
 
 const Board: FC<IBoardSetting> = () => {
-  const [board, setBoard] = useState(getDefaultBoard())
+  const [player, setPlayer] = useState(Player.x)
+  const [message, setMessage] = useState(Message.none)
+  const [history, setHistory] = useState<any[][]>([])
+  const [positions, setPositions] = useState(getBasePositions())
+  const [winner, setWinner] = useState<number[]>()
 
-  const getNextPlayer = () => board.player === Player.x ? Player.o : Player.x
-
-  const clear = () => setBoard(getDefaultBoard())
+  const getChangePlayer = () => player === Player.x ? Player.o : Player.x
 
   const back = () => {
-    if (board.history.length === 0) return
+    if (history.length === 0) return
 
-    const history = board.history.slice()
-    const positions = history.pop()
+    const newHistory = history.slice()
+    const newPositions = newHistory.pop()
 
-    setBoard({
-      ...board,
-      history: history,
-      positions: positions!,
-      winner: undefined,
-      message: undefined
-    })
+    !winner && setPlayer(getChangePlayer())
+    setMessage(Message.none)
+    setHistory(newHistory)
+    setPositions(newPositions!)
+    setWinner(undefined)
   }
 
-  const changeBoard = (column: number) => {
-    if (board.winner) return
-    
-    const newHistory = [...board.history, board.positions.slice()]
-    const newPositions = [...board.positions]
-    newPositions[column].value = board.player
-
-    const winner = getWinner(newPositions)
-
-    setBoard({
-      ...board,
-      history: newHistory,
-      positions: newPositions,
-      winner: winner,
-      player: winner ? board.player : getNextPlayer(),
-      message: winner ? Message.win : undefined
-    })
+  const clear = () => {
+    setPlayer(Player.x)
+    setMessage(Message.none)
+    setHistory([])
+    setPositions(getBasePositions())
+    setWinner(undefined)
   }
 
-  const click = (valid: boolean, column: any) => {
-    if (board.winner !== undefined) return
-    valid ? changeBoard(column) : setBoard({ ...board, message: Message.invalidPosition })
+  const change = (avariable: boolean, index: number) => {
+    if (winner) return
+    if (!avariable) return setMessage(Message.invalidPlay)
+
+    setHistory([...history, positions.slice()])
+
+    const newPositions = positions.slice()
+    newPositions[index] = player
+    setPositions(newPositions)
+
+    const newWinner = getWinner(newPositions)
+    if (newWinner) {
+      setWinner(newWinner)
+      setMessage(Message.winner)
+    } else setPlayer(getChangePlayer())
   }
 
-  const rows = [board.positions.slice(0, 3), board.positions.slice(3, 6), board.positions.slice(6, 9)]
+  const rows = [positions.slice(0, 3), positions.slice(3, 6), positions.slice(6, 9)]
 
-  return <div className="board">
+  return <div>
     {
       rows.map((row, indexRow) =>
-        (
-          <div className="row" key={indexRow}>
-            {
-              row.map((column, indexColumn) => (
-                <House
-                  key={indexColumn}
-                  event={(valid: boolean) => click(valid, column.index)}
-                  rail={(board.winner !== undefined && board.winner.model.includes(column.index))}
-                  position={column} />
-              ))
-            }
-          </div>
-        ))
+        <div className="row" key={indexRow}>
+          {
+            row.map((column, indexColumn) =>
+              <House
+                key={indexColumn}
+                position={column}
+                event={(avariable: boolean) => change(avariable, indexRow * 3 + indexColumn)}
+                rail={winner !== undefined && winner.includes(indexRow * 3 + indexColumn)}
+              />
+            )
+          }
+        </div>
+      )
     }
     <div className="buttons">
       <button onClick={clear}>Novo</button> <button onClick={back}>Voltar</button>
     </div>
     <div className="messages">
-      <div className="player">É a vez do jogador {board.player}</div>
-      <div className="message">{board.message}</div>
+      <div className="player">É a vez do jogador {player}</div>
+      <div className="message">{message.replace('[0]', player)}</div>
     </div>
   </div>
 }
